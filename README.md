@@ -1,115 +1,46 @@
-# Habita: app para iOS y Android
+# Habita — sitio web
 
-La app es una página web (`src/app.html`) empaquetada con Capacitor. Un mismo código genera la app de iPhone y la de Android, con cámara, ubicación y mapas nativos.
+Sitio estático (HTML, CSS y JavaScript con módulos). No necesita compilar nada.
 
-## Qué hace con el teléfono
-
-| Función | iPhone | Android |
-|---|---|---|
-| Botón "Abrir en Apple Maps / Mapas" | Abre Apple Maps con el pin de la vivienda | Abre el mapa predeterminado del teléfono (intent `geo:`) |
-| Tomar fotos en la guía de publicación | Cámara nativa | Cámara nativa |
-| "Usar mi ubicación actual" | Ubicación del iPhone | Ubicación del teléfono |
-
-## Requisitos
-
-- Node 20 o superior.
-- Para iPhone: un Mac con Xcode 16+ y una cuenta de Apple Developer (99 USD al año).
-- Para Android: Android Studio y una cuenta de Google Play Console (25 USD, pago único).
-
-## Primera vez
-
-```bash
-npm install
-npm run build
-npx cap add ios        # solo en Mac
-npx cap add android
-npm run assets         # genera íconos y pantalla de inicio desde /resources
-npm run sync           # copia la web y agrega permisos de cámara, ubicación y mapas
+```
+web/
+  index.html        Inicio: animación del logo + carrusel + secciones
+  auth.html         Registro, inicio de sesión y recuperar contraseña
+  perfil.html       Perfil (página protegida)
+  css/styles.css    Estilos y colores de marca (variables al inicio)
+  img/              Imágenes del carrusel y logo
+  js/config.js      Textos del carrusel, menú y rutas (lo que más se edita)
+  js/firebase-config.js   Llaves de tu proyecto Firebase  <-- hay que completarlo
+  js/auth.js        Registro, login, logout, reset, errores en español
+  js/guard.js       Protección de páginas privadas
+  js/ui.js          Logo, cabecera, pie y menú de usuario
+  js/carousel.js    Carrusel · js/home.js: intro del logo
 ```
 
-Después de cada cambio en `src/app.html`: `npm run sync`.
+## 1. Activar el sistema de cuentas (Firebase Authentication)
 
-## Probar
+Las contraseñas las maneja Firebase (hash seguro en sus servidores); este código nunca las guarda.
 
-```bash
-npm run open:ios       # abre Xcode: elige un simulador o tu iPhone y pulsa Run
-npm run open:android   # abre Android Studio: elige un emulador o tu teléfono y pulsa Run
-```
+1. Entra a https://console.firebase.google.com y crea un proyecto.
+2. **Authentication → Método de acceso →** activa **Correo electrónico/contraseña**.
+3. **Authentication → Configuración → Dominios autorizados →** agrega el dominio donde publicarás (por ejemplo `parra-smn.github.io`).
+4. **Configuración del proyecto → Tus apps → Web (`</>`)** y copia `apiKey`, `authDomain`, `projectId` y `appId` en `web/js/firebase-config.js`.
+5. Opcional: en **Authentication → Plantillas** traduce el correo de recuperación y de verificación al español.
 
-## Publicar en App Store
+Mientras `firebase-config.js` tenga los valores `TU_...`, la web muestra un aviso y los formularios quedan desactivados.
 
-1. En Xcode abre `App > Signing & Capabilities`, elige tu Team y deja el Bundle Identifier `co.habita.app` (cámbialo si ya está tomado).
-2. En App Store Connect crea una app nueva con ese Bundle ID.
-3. En Xcode: `Product > Archive`, luego `Distribute App > App Store Connect`.
-4. Sube capturas (iPhone 6,9" y 6,5"), descripción, política de privacidad (URL pública) y completa "App Privacy" (declara cámara, fotos y ubicación aproximada o precisa).
-5. Prueba primero con TestFlight y luego envía a revisión.
+## 2. Ver el sitio en tu computador
 
-## Publicar en Google Play
+Desde la carpeta `web`: `npx serve .` (o `python3 -m http.server`) y abre la dirección que aparezca. Abrir el archivo con doble clic no funciona porque usa módulos de JavaScript.
 
-1. En Android Studio: `Build > Generate Signed App Bundle` y elige Android App Bundle (.aab). Crea el keystore y guárdalo en un lugar seguro: sin él no puedes actualizar la app.
-2. En Play Console crea la app, sube el .aab a una prueba interna y completa "Seguridad de los datos" y la política de privacidad.
-3. Las cuentas personales nuevas deben hacer una prueba cerrada con 12 testers durante 14 días antes de pasar a producción.
+## 3. Publicar en GitHub Pages
 
-## Antes de enviar a revisión
+Settings → Pages → Source: *GitHub Actions* o rama `main` con carpeta `/web` (si no aparece la carpeta, usa la acción "Deploy static content" apuntando a `web`).
 
-- **Datos reales.** Hoy las viviendas, precios, obras y rentabilidades son de ejemplo. Para publicar necesitas un backend (por ejemplo Supabase o Firebase) donde se guarden usuarios, anuncios y fotos.
-- **Apple puede rechazar apps que son solo una página web** (guía 4.2). Esta app usa cámara, ubicación y mapas nativos, y conviene sumar notificaciones push o favoritos con cuenta de usuario antes de enviar.
-- **Mapa dentro de la app.** El mapa de la pantalla Explorar es esquemático. Cada vivienda se abre en el mapa del sistema. Para tener un mapa interactivo dentro de la app, el siguiente paso es un plugin con MapKit (iOS) y Google Maps (Android).
-- **Asistente con IA.** Hoy interpreta el texto con reglas locales. Para entender cualquier frase se conecta a un modelo de lenguaje desde tu servidor, nunca con la clave dentro de la app.
-- **Política de privacidad y términos.** Son obligatorios en ambas tiendas porque la app maneja fotos y ubicación.
+## Seguridad
 
-## Actualización v3: mapa de Apple y nuevo diseño
-
-1. Copia sobre tu carpeta `habita-app` las carpetas `src`, `native`, `scripts` y `resources` de este zip (reemplaza). No reemplaces `package.json` ni `ios`.
-2. En la terminal, dentro de `habita-app`: `bash scripts/install-native-map.sh`
-3. En Xcode: Shift+Cmd+K y Play.
-
-El mapa de Apple (MapKit) se incrusta en la app de iPhone y no necesita llave ni cuenta de pago. En Android y en la vista web se usa un mapa esquemático y el botón abre el mapa del sistema (un mapa incrustado en Android requiere una llave de Google Maps).
-Facebook Marketplace no ofrece conexión pública: Habi lee el anuncio que el usuario pega en el chat.
-
-## Versión de la app para Expoandes (v4)
-
-- Navegación: **Explorar · Mi casa · Publicar**. Inversión y Obra gris ya no son secciones: Obra gris es un tipo de vivienda y el análisis financiero vive en *Propiedad → Más información*.
-- Buscador con IA: se escribe en lenguaje natural y se convierte en filtros editables (“Esto entendí”).
-- Cuestionario inicial de 6 preguntas, editable en *Mi casa → Mi plan*, que alimenta el porcentaje de compatibilidad de cada vivienda.
-- Tipos: Apartamento, Casa, Apartaestudio, Habitación (con datos propios) y Obra gris.
-- *Mi casa → Mis opciones*: ranking por compatibilidad, revisión de presupuesto, ubicación en el mapa y comparador.
-- Demo web de la app: `/app/` (por ejemplo https://jeroruiz23.github.io/habita-web/app/).
-
-## Mejoras de experiencia (v5)
-
-- Primera pantalla de bienvenida (“Encuentra un lugar que realmente se adapte a ti”) → *Empezar* → el mismo cuestionario de 6 preguntas → pantalla “Estamos usando lo que nos dijiste” → resultados personalizados. Se puede saltar con “Prefiero explorar sin responder”.
-- *Explorar* abre con el buscador con IA como protagonista (“¿Qué estás buscando?”, ejemplos y explicación corta). El mapa ya no se muestra al inicio: aparece con el botón *Ver mapa* y, en escritorio, después de una búsqueda con IA.
-- “Esto entendí” muestra los criterios que Habita leyó (con ✓ y × para quitarlos) y cuántas viviendas encajan.
-- Se agregaron dos apartamentos de arriendo cerca de Los Andes para que los ejemplos de búsqueda devuelvan resultados.
-
-## Identidad visual y Home (v6)
-
-- Colores fijos de marca: verde musgo `#394a3f`, blanco `#ffffff` y naranja `#ff9100`. Se quitaron el tema oscuro y el selector de colores.
-- Logo oficial (H con casa y llave) en la app, el sitio, el ícono y la pantalla de inicio del iPhone. Los archivos están en `web/img/`.
-- Al abrir la app aparece el logo (≈1,5 s) y luego el **Home**: qué hace Habita, *Empezar* (cuestionario), *Busca con IA* y un carrusel con cambio automático, flechas, indicadores y deslizamiento. Tocar el logo en cualquier sección vuelve al Home.
-- `npm run build` genera `www/` (la app), copia la app a `web/app/` y publica todo `web/` en `docs/` (GitHub Pages). En `src/app.html` las imágenes se escriben como `@@img/archivo@@` y el build las incrusta.
-
-## MVP: entender, recomendar y decidir (v7)
-
-- **Home:** logo → mensaje → carrusel → *Empezar* (principal) → *o busca con IA*.
-- **Cuestionario:** se presenta como el inicio de la personalización y termina con “Ya entendimos lo que buscas” y el resumen de las respuestas.
-- **Explorar:** buscador con IA; “Esto entendí” con íconos (🛏 tipo, 📍 lugar, 💰 máximo…). Títulos de resultados personalizados (“8 opciones para ti”, “4 viviendas que coinciden contigo”).
-- **Tarjetas:** % de compatibilidad y “¿Por qué te la recomendamos?” (✓/✕) primero; luego precio y su comparación con el promedio de la zona.
-- **Filtros:** Tipo · Precio · Zona · Habitaciones; el resto en *Más filtros* y solo cuando aplica (personas para habitaciones, área/baños/parqueadero para viviendas completas, amoblado/servicios en arriendo).
-- **Lista | Mapa:** la lista es la vista principal. El mapa muestra universidades, transporte, supermercados, parques y hospitales, y para la vivienda elegida responde “¿Qué tan conveniente es vivir aquí?”.
-- **Comparar:** “+ Comparar” en cualquier tarjeta (hasta 3), bandeja para ir a la comparación y recomendación de cuál conviene más.
-- **Precio justo:** promedio estimado de la zona y % por encima o por debajo, en la tarjeta y en el detalle.
-- **Mi plan** (antes Mi casa): progreso, guardadas y mejores opciones, comparar, mis preferencias y metas.
-- **IA en otros portales:** cada búsqueda con IA agrega 2 o 3 viviendas encontradas en Finca Raíz, Metrocuadrado, Ciencuadras, Properati o Facebook Marketplace (generadas a partir de los criterios entendidos, con portal, enlace y código del anuncio). Si se guardan o comparan, se conservan.
-- 16 apartamentos nuevos en Bogotá, Medellín y Cali.
-
-## Más simple y pensado para móvil (v8)
-
-- **Explorar** ya no tiene Comprar/Arrendar ni Tipo: eso sale del cuestionario. “Tu búsqueda” resume las respuestas y **Editar búsqueda** abre el mismo cuestionario con ellas. Al cambiarlas aparece “Actualizando tu búsqueda…” y el título responde (“8 apartamentos que coinciden contigo”).
-- La búsqueda con IA entiende también frases cortas (“habitación”, “arriendo”).
-- **Compatibilidad:** un solo indicador (el % de las tarjetas). El detalle conserva “¿Por qué te la recomendamos?” sin repetir el número y sin puntajes /100.
-- **Mi plan:** título “Guarda, compara y decide”; pestañas Guardadas, Comparar y Metas de ahorro.
-- **Mapa:** acercar/alejar y ampliar. En el celular, el modo Mapa muestra una sola tarjeta con la vivienda elegida.
-- **Memoria:** nada se guarda entre sesiones; recargar la página empieza de cero. Dentro de la sesión se conservan respuestas, guardadas, comparación y metas. No hay guardados de ejemplo.
-- **Móvil:** márgenes de 20 px, botones y campos de 44–48 px, filtros en cuadrícula, tarjetas a todo el ancho, cuestionario y detalle a pantalla completa, barra inferior más alta.
+- `guard.js` oculta las páginas privadas a quien no inició sesión. Eso protege la pantalla, no los datos.
+- Cuando guardes datos de usuarios (favoritos, metas), protégelos con reglas de Firebase, por ejemplo en Firestore:
+  `allow read, write: if request.auth != null && request.auth.uid == userId;`
+- Para una nueva página privada: pon `class="guarded"` en `<body>` y usa `const user = await requireAuth();` (mira `js/profile.js`).
+- Firebase responde "correo o contraseña incorrectos" sin indicar cuál falló; es intencional, para no revelar qué correos tienen cuenta.

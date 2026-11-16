@@ -1,30 +1,9 @@
 {
-  "name": "habita-app",
+  "name": "capacitor-habita-map",
   "version": "1.0.0",
-  "private": true,
-  "description": "Habita: app de vivienda para Colombia (iOS y Android con Capacitor)",
-  "scripts": {
-    "build": "node scripts/build-web.mjs",
-    "assets": "npx capacitor-assets generate --iconBackgroundColor '#394a3f' --iconBackgroundColorDark '#394a3f' --splashBackgroundColor '#394a3f' --splashBackgroundColorDark '#394a3f'",
-    "add:ios": "npx cap add ios",
-    "add:android": "npx cap add android",
-    "sync": "npm run build && npx cap sync && bash scripts/patch-native.sh",
-    "open:ios": "npx cap open ios",
-    "open:android": "npx cap open android"
-  },
-  "dependencies": {
-    "@capacitor/android": "^8.5.0",
-    "@capacitor/app-launcher": "^8.5.0",
-    "@capacitor/camera": "^8.5.0",
-    "@capacitor/core": "^8.5.0",
-    "@capacitor/geolocation": "^8.5.0",
-    "@capacitor/ios": "^8.5.0",
-    "@capacitor/splash-screen": "^8.5.0",
-    "@capacitor/status-bar": "^8.5.0",
-    "capacitor-habita-map": "file:native/habita-map"
-  },
-  "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^8.5.0"
-  }
+  "description": "Mapa nativo de Apple (MapKit) incrustado en Habita para iPhone",
+  "license": "UNLICENSED",
+  "files": ["ios/Sources", "Package.swift"],
+  "capacitor": { "ios": { "src": "ios" } },
+  "peerDependencies": { "@capacitor/core": ">=8.0.0" }
 }
